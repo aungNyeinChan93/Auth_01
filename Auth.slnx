@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Auth.Database_01/Auth.Database_01.csproj" />
+  <Project Path="Auth.TestForQuery/Auth.TestForQuery.csproj" />
+  <Project Path="Auth.web_api_01/Auth.web_api_01.csproj" />
+</Solution>

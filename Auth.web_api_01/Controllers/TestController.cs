@@ -31,5 +31,12 @@ namespace Auth.web_api_01.Controllers
         {
             return Ok("test three");
         }
+
+        [Authorize(Roles ="user")]
+        [HttpGet("test-four")]
+        public async Task<IActionResult> TestFour()
+        {
+            return Ok("test four");
+        }
     }
 }

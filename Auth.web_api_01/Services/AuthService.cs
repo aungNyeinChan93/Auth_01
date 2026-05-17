@@ -27,7 +27,12 @@ namespace Auth.web_api_01.Services
 
         public async Task<RegisterResponse> RegisterAsync(RegisterReqModel request)
         {
-           
+            //check already user exist
+            if (await _context.AppUsers.AnyAsync(u =>u.Email == request.Email))
+            {
+                return default!;
+            }
+
             var newUser = new AppUser() 
             { Email = request.Email, Name = request.Name, Password = request.Password ,RoleId = request.RoleId};
 
@@ -43,21 +48,37 @@ namespace Auth.web_api_01.Services
 
         public async Task<LoginResponseModel> LoginAsync(LoginRequestModel request)
         {
+
+
             var user = await _context.AppUsers.AsNoTracking()
                 .Include(user => user.Role).ThenInclude(r => r!.RolePermissions)!.ThenInclude(rp => rp.Permission)
                 .FirstOrDefaultAsync(u => u.Email == request.Email);
 
-            if(user is null) return default!;
+            //_context.Entry<AppUser>(user!).Reference(u => u.Role).Load();
+            //var role = user.Role;
+            //_context.Entry<Role>(role!).Collection(r => r.RolePermissions!).Load();
+            //var rps = user.Role.RolePermissions;
+
+            if (user is null) return default!;
+
+            var checkPassword = new PasswordHasher<AppUser>().VerifyHashedPassword(user, user.Password, request.Password);
 
             if (user.Role is null) return default!;
             
             var roleName = user.Role?.RoleName ?? "";
 
+            if (user.Role?.RolePermissions!.Count <= 0) return default!;
+            
             var permissions = user!.Role!.RolePermissions!
                 .Select(rp => rp.Permission!.PermissionName)
                 .ToList();
 
-            var checkPassword = new PasswordHasher<AppUser>().VerifyHashedPassword(user, user.Password, request.Password);
+            //var ps = await (from rp in _context.RolePermissions
+            //                join p in _context.Permissions
+            //                on rp.PermissionId equals p.PermissionId
+            //                where rp.RoleId == user!.RoleId
+            //                select p.PermissionName).ToListAsync();
+
 
             if(checkPassword == PasswordVerificationResult.Failed) return default!;
 
@@ -90,13 +111,13 @@ namespace Auth.web_api_01.Services
                 claims.Add(new Claim(ClaimTypes.Role,roleName));
             }
 
-            if (user!.Role!.RolePermissions!.Count > 0)
+            if (user!.Role!.RolePermissions is not null)
             {
                 var permissions = user!.Role!.RolePermissions!
                 .Select(rp => rp.Permission!.PermissionName)
                 .ToList();
 
-                if (permissions.Count >0)
+                if (permissions.Count > 0)
                 {
                     foreach (var permission in permissions)
                     {

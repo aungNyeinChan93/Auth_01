@@ -30,7 +30,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("PostDelete", p =>
+    {
+        p.RequireClaim("permission", "Post.Delete");
+    });
+});
 
 builder.Services.AddScoped<AuthService>();
 

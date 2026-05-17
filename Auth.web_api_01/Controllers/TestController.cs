@@ -23,5 +23,13 @@ namespace Auth.web_api_01.Controllers
         {
             return Ok("test two");
         }
+
+
+        [Authorize(Policy = "PostDelete")]
+        [HttpGet("test-three")]
+        public async Task<IActionResult> TestThree()
+        {
+            return Ok("test three");
+        }
     }
 }
